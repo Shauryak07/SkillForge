@@ -10,5 +10,5 @@ class ContractSerializer(serializers.ModelSerializer):
             "client",
             "freelancer",
             "amount",
-            "status"
+            "status",
         )

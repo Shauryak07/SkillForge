@@ -1,7 +1,7 @@
-from api.auth.serializers import *
+from api.auth.serializers import RegisterSerializer, LogoutSerializer
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
@@ -10,37 +10,38 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
  
 
-class RegisterAPIView(APIView):
+class RegisterAPIView(GenericAPIView):
     permission_classes = [AllowAny,]
+    serializer_class = RegisterSerializer
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"message": "User registered successfully"},
-                status=status.HTTP_201_CREATED
-            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
 
-# class LoginAPIView(TokenObtainPairView):
-#     serializer_class = LoginSerializer
+        return Response(
+            {"message": "User registered successfully"},
+            status=status.HTTP_201_CREATED
+        )
 
+class LogoutAPIView(GenericAPIView):
+    serializer_class = LogoutSerializer
 
-class LogoutAPIView(APIView):
-    
     def post(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        refresh_token = serializer.validated_data['refresh']
+
         try:
-            refresh_token = request.data.get("refresh")
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(
+            
+        except Exception:
+            return Response({"message": "Invalid or expired token"},)
+
+        return Response(
                 {"message": "Logged Out"},
                 status = status.HTTP_205_RESET_CONTENT
-            )
-        except:
-            return Response(
-                {"message": "Invalid token"},
-                status= status.HTTP_400_BAD_REQUEST
             )

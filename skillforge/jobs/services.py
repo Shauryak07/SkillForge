@@ -2,7 +2,7 @@ from jobs.models import Job, JobEvent
 from jobs.permissions import *
 from jobs.events import trigger_job_event
 
-def create_job(title,description,client,budget,status):
+def create_job(title,description,client,budget):
     job = Job.objects.create(
         title=title,
         description=description,

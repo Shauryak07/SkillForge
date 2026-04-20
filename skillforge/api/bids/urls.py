@@ -1,9 +1,7 @@
-from django.urls import path
-from api.bids.views import *
+from api.bids.views import BidViewSet
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = [
-    path("job/<int:job_id>/",BidPlaceAPIView.as_view()),
-    path("<int:bid_id>/aceept/",BidAcceptAPIView.as_view()),
-    path("job/<int:job_id>/",BidListAsClientAPIView.as_view()),
-    path("my/",BidListAsFreelancerAPIView.as_view()),
-]
+router = DefaultRouter()
+router.register(r"", BidViewSet, basename="bids")
+
+urlpatterns = router.urls

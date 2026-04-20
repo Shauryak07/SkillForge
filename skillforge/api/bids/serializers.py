@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from bids.models import Bid
 
-class BidSerializer(serializers.ModelSerializer):
+class BidListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bid
         fields = (
@@ -11,10 +11,6 @@ class BidSerializer(serializers.ModelSerializer):
             'created_at',
         )
 
-class BidAcceptSerializer(serializers.Serializer):
-    bid_id = serializers.IntegerField()
-
-class BidPlaceSerializer(serializers.Serializer):
-    job_id = serializers.IntegerField()
-    amount = serializers.DecimalField()
+class BidSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=10,decimal_places=2)
     proposal = serializers.CharField()

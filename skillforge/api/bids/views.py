@@ -1,96 +1,106 @@
-from rest_framework import generics,status
-from rest_framework.views import APIView
-from bids.models import Bid
-from jobs.models import Job
-from api.bids.serializers import BidSerializer,BidAcceptSerializer,BidPlaceSerializer
-from api.bids.filters import BidFilter
-from django_filters import filters
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from api.bids.permissions import IsJobOwner
-from bids.services import accept_bid,place_bid
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.filters import SearchFilter,OrderingFilter
 
-class BidPlaceAPIView(APIView):
-    def post(self,request):
-        serializer = BidPlaceSerializer(data=request.data)
+from api.bids.filters import BidFilter
+from api.bids.permissions import IsJobOwner
+from api.bids.serializers import BidSerializer,BidListSerializer
+from bids.models import Bid
+from bids.services import *
+from jobs.models import Job
 
-        if not serializer.is_valid():
-            raise Response(serializer.errors,status=status.HTTP_200_OK)
-        
+
+class BidViewSet(viewsets.ModelViewSet):
+    queryset = Bid.objects.all()
+    serializer_class = BidListSerializer
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+    filterset_class = BidFilter
+    search_fields = ['proposal']
+    ordering_fields = ['amount','-created_at']
+    http_method_names = ["get", "post", "patch", "delete"]
+
+    def get_serializer_class(self):
+        if self.action in ["create", "partial_update"]:
+            return BidSerializer
+        return BidListSerializer
+
+    def list(self,request):
+        queryset = Bid.objects.filter(freelancer=request.user)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data,status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def received_bids(self, request):
+        queryset = Bid.objects.filter(job__client=request.user)
+        queryset = self.filter_queryset(queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data,status.HTTP_200_OK)
+
+    def create(self,request):
+        serializer = BidSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         job_id = serializer.validated_data['job_id']
-        amount = serializer.validated_data['amount']
-        proposal = serializer.validated_data['proposal']
 
-        try:
-            job = Job.objects.get(id=job_id)
-            updated_job = place_bid(job,request.user,amount,proposal)
+        bid = place_bid(
+            job=get_object_or_404(Job,id=job_id),
+            actor=request.user,
+            amount=serializer.validated_data['amount'],
+            proposal=serializer.validated_data['proposal']
+        )
+        return Response({
+            "message" : "Bid Placed",
+            "bid_id" : bid.id,
+            "job_id" : job_id,
+        },status=status.HTTP_201_CREATED)  
 
-            return Response({
-                "message" : "Bid Placed Successfully",
-                "job_id" : updated_job.id,
-                "status" : updated_job.status
-            },status=status.HTTP_200_OK)
+    def update(self,request,*args,**kwargs):
+        raise MethodNotAllowed("PUT")
 
-        except Job.DoesNotExist:
-            return Response({"error" : "Job not Found"},status=status.HTTP_400_BAD_REQUEST)
+    def partial_update(self,request,*args,**kwargs):
+        bid = self.get_object()
 
-        except DjangoValidationError as e:
-            return Response({"error" :  str(e)},status=status.HTTP_400_BAD_REQUEST)
+        serializer=BidSerializer(data=request.data,partial=True)
+        serializer.is_valid(raise_exception=True)
 
-        except Exception as e:
-            return Response({"error": "Something went wrong"},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        updated_bid = update_bid(
+            bid=bid,
+            actor=request.user,
+            **serializer.validated_data
+        )      
+        return Response({
+            "message" : "Bid Updated",
+            "bid_id" : bid.id,
+        })  
+    
+    def destroy(self,request,*args,**kwargs):
+        bid = self.get_object()
 
+        withdraw_bid(bid,request.user)
 
-class BidAcceptAPIView(APIView):
-    permission_classes = [IsJobOwner]
-    def post(self,request):
-        serializer = BidAcceptSerializer(data=request.data)
+        return Response({
+            "message" : "Bid Withdrawed",
+            "bid_id" : bid.id
+        })
 
-        if not serializer.is_valid():
-            raise Respone(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    @action(detail=True,methods=['post'])
+    def accept(self,request,pk=None):
+        bid = self.get_object()
 
-        bid_id = serializer.validated_data['bid_id']
+        accepted_bid = accept_bid(bid,request.user)
 
-        try:
-            bid = Bid.objects.get(id=bid_id)
-            updated_bid = accept_bid(bid,request.user)
-
-            return Response({
-                "message": "Bid Accepted Successfully",
-                "bid_id" : updated_bid.id,
-                "status" : updated_bid.status
-            },status=status.HTTP_200_OK)
-
-        except Bid.DoesNotExist:
-            return Response({"error":"Bid not Found"},status=status.HTTP_400_BAD_REQUEST)
-
-        except DjangoValidationError as e:
-            return Response({"error": str(e)},status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({"error": "Something went wrong"},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class BidListAsClientAPIView(generics.RetrieveAPIView):
-    serializer_class = BidSerializer
-    lookup_url_kwarg = 'job_id'
-    filterset_class = BidFilter
-    filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
-    search_fields = ['amount','status']
-    ordering_fields = ['amount','created_at']
-
-    def get_queryset(self):
-        user = self.request.user
-        return Bid.objects.filter(job__client==user)
-        
-
-class BidListAsFreelancerAPIView(generics.ListAPIView):
-    serializer_class = BidSerializer
-    filterset_class = BidFilter
-    filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
-    search_fields = ['amount','status']
-    ordering_fields = ['amount','created_at']
-
-    def get_queryset(self):
-        user = self.request.user
-        return Bid.objects.filter(freelancer=user)
+        return Response({
+            "message" : "Bid Accepted",
+            "bid_id" : accepted_bid.id,
+            "bid_status" : accepted_bid.status
+        })

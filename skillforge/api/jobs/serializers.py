@@ -2,7 +2,7 @@ from rest_framework import serializers
 from jobs.models import Job
 
 
-class JobSerializer(serializers.ModelSerializer):
+class JobListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = (
@@ -14,6 +14,8 @@ class JobSerializer(serializers.ModelSerializer):
             'created_at',
         )
 
-class JobUpdateSerializer(serializers.Serializer):
-    job_id = serializers.IntegerField()
+class JobSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()
+    budget = serializers.DecimalField(decimal_places=2,max_digits=10)
 

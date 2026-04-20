@@ -1,4 +1,4 @@
-from payments.services import release_escrow,fund_contract,activate_contract
+# from payments.services import release_escrow,fund_contract,activate_contract
 from contracts.models import ContractEvent
 
 

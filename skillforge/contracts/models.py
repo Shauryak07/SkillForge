@@ -41,8 +41,7 @@ class Contract(models.Model):
         PAID = "PAID"
         REFUNDED = "REFUNDED"
         CANCELLED = "CANCELLED"
-        DISPUTED = "DISPUTED"
-        
+        DISPUTED = "DISPUTED"      
 
     status = models.CharField(
         max_length = 20,

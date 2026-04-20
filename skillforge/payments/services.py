@@ -6,7 +6,7 @@ from contracts.models import Contract, ContractEvent
 from django.core.exceptions import ValidationError
 from contracts.permissions import *
 from payments.events import trigger_pay_event
-from contracts.workflows import activate_contract
+# from contracts.workflows import activate_contract
 from domain.invariants import validate_wallet, validate_wallet_transaction_consistency
 from django.db.transaction import on_commit
 
@@ -49,7 +49,7 @@ def fund_contract(contract, actor):
     contract.transition_to(Contract.Status.FUNDED)
 
     transaction.on_commit(trigger_pay_event(contract,actor,ContractEvent.ContractEventType.CONTRACT_FUNDED))
-    activate_contract(contract,actor)
+    # activate_contract(contract,actor)
 
     return contract
     
