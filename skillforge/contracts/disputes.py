@@ -1,6 +1,6 @@
 from contracts.models import Contract,ContractEvent, Dispute
 from contracts.events import trigger_event
-from contracts.permissions import can_open_dispute
+from contracts.permissions import can_open_dispute,can_resolve_dispute
 from django.db import transaction
 from domain.invariants import ensure_no_active_disputes
 

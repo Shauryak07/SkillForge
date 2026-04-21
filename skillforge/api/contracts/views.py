@@ -1,6 +1,6 @@
 from django.db.models.query_utils import Q
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, serializers, status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from rest_framework.decorators import action
@@ -8,7 +8,8 @@ from rest_framework.decorators import action
 from api.contracts.filters import ContractFilter
 from api.contracts.serializers import ContractSerializer
 from contracts.models import Contract
-from contracts.workflows import cancel_contract
+from contracts.workflows import cancel_contract,activate_contract
+from payments.services import fund_contract
 
 
 class ContractViewSet(
@@ -49,5 +50,26 @@ class ContractViewSet(
         return Response({
             "message" : "Contract Cancelled",
             "contract_id" : contract.id
-        })
+        },status=status.HTTP_200_OK)
+    
+    @action(detail=True,methods=['post'])
+    def activate(self,request,pk=None):
+        contract = self.get_object()
 
+        activate_contract(contract,request.user)
+
+        return Response({
+            "message" : "Contract Activated",
+            "contract_id" : contract.id
+        },status=status.HTTP_200_OK)
+
+    @action(detail=True,methods=['post'])
+    def fund(self,request,pk=None):
+        contract = self.get_object()
+
+        fund_contract(contract=contract,actor=request.user)
+
+        return Response({
+            "message" : "Contract Funded",
+            "contract_id" : contract.id
+        },status=status.HTTP_200_OK)

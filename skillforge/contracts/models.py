@@ -1,7 +1,6 @@
 from django.db import models
 from users.models import CustomUser
 from jobs.models import Job
-from bids.models import Bid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -51,12 +50,13 @@ class Contract(models.Model):
     )
 
     current_submission = models.ForeignKey(
-        "Submission",
+        "submissions.Submission",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         related_name="+"
     )
+    max_revisions = models.PositiveIntegerField(default=3)
 
     def allowed_transition(self):
         return ALLOWED_TRANSITIONS.get(self.status, set())
@@ -137,42 +137,7 @@ class ContractEvent(models.Model):
     def __str__(self):
         return f"[{self.actor}] {self.event_type} - {self.contract_id}" # contract_id is just same default id created by django 
 
-class Submission(models.Model):
 
-    class SubmissionStatus(models.TextChoices):
-        SUBMITTED = "submitted"
-        REJECTED = "rejected"
-        APPROVED = "approved"
-
-    contract = models.ForeignKey(
-        Contract,
-        on_delete=models.CASCADE,
-        related_name="submissions"
-    )
-
-    submitted_by = models.ForeignKey(
-        CustomUser,
-        on_delete=models.PROTECT,
-        related_name="submissions"
-    )
-
-    message = models.TextField()
-    file = models.FileField(upload_to='uploads/',null=True)
-    revision_number = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=20,choices=SubmissionStatus.choices,default=SubmissionStatus.SUBMITTED)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        indexes  = [
-            models.Index(fields=["contract","revision_number"]),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["contract","revision_number"],
-                name="unique_revision_per_contract"
-            )
-        ]
 
 class Dispute(models.Model):
 
@@ -219,3 +184,4 @@ class Dispute(models.Model):
         return f"Dispute {self.id} raised by {self.opened_by} on {self.created_at}"
 
     
+

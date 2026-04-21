@@ -1,10 +1,9 @@
 from bids.permissions import *
 from bids.models import Bid
-from contracts.models import Contract
 from django.db import transaction
 from jobs.events import trigger_job_event
 from jobs.models import JobEvent
-from contracts.services import create_contract
+from contracts.workflows import create_contract
 
 @transaction.atomic
 def accept_bid(bid, actor):

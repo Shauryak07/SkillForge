@@ -1,3 +1,4 @@
+from submissions.models import Submission
 
 def validate_wallet(wallet):
     if wallet.balance < 0  or wallet.locked_balance < 0:
@@ -19,3 +20,11 @@ def validate_wallet_transaction_consistency(wallet):
             f"Wallet balance mismatch. Expected {total} got {wallet.balance}"
         )
 
+def get_latest_submission(contract):
+    return (
+        Submission.objects
+        .select_for_update()
+        .filter(contract=contract)
+        .order_by('-revision_number')
+        .first()
+    )
