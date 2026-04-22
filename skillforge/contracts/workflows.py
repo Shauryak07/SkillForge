@@ -3,7 +3,7 @@ from contracts.permissions import can_activate_contract, can_cancel_contract
 from django.db import transaction
 from contracts.events import trigger_event
 from django.core.exceptions import ValidationError
-from domain.invariants import ensure_no_active_disputes
+from disputes.helpers import ensure_no_active_disputes
 
 
 def create_contract(job, client, freelancer, amount):

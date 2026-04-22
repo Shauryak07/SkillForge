@@ -33,7 +33,6 @@ def can_approve_work(user, contract, submission):
     if submission.status != Submission.SubmissionStatus.PENDING:
         raise ValidationError("Invalid submission state")
 
-
     return True
 
 def can_reject_work(user, contract, submission, feedback):

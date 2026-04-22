@@ -1,24 +1,15 @@
 from django.db import models
-from users.models import CustomUser
-from django.db import transaction
-from decimal import Decimal
 import uuid
 
 # Create your models here.
 class Wallet(models.Model):
-    user =  models.OneToOneField(CustomUser,on_delete=models.CASCADE, related_name="wallet")
+    user =  models.OneToOneField("users.CustomUser",on_delete=models.CASCADE, related_name="wallet")
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     locked_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.user.username} Wallet"
 
-class TransactionType(models.TextChoices):
-    DEPOSIT = "deposit", "Deposit"
-    ESCROW_LOCK = "escrow_lock", "Escrow_lock"
-    ESCROW_RELEASE = "escrow_release", "Escrow_release"
-    REFUND = "refund", "Refund"
-    PLATFORM_FEE = "platform_fee", "Platform_fee"
 
 class Transaction(models.Model):
     wallet = models.ForeignKey(Wallet,on_delete=models.CASCADE,related_name="transactions")
@@ -29,10 +20,50 @@ class Transaction(models.Model):
         on_delete=models.SET_NULL
     )
     amount = models.DecimalField(max_digits=12,decimal_places=2)
+
+    class TransactionType(models.TextChoices):
+        DEPOSIT = "deposit", "Deposit"
+
+        ESCROW_FUNDED = "escrow_funded", "Escrow_funded"
+        ESCROW_RELEASED = "escrow_released", "Escrow_released"
+
+        REFUND = "refund", "Refund"
+
+        PLATFORM_FEE = "platform_fee", "Platform_fee"
+
     transaction_type = models.CharField(
         max_length=50,
         choices=TransactionType.choices
     )
+
+    class TransactionDirection(models.TextChoices):
+        CREDIT = "credit", "Credit"
+        DEBIT = "debit", "Debit"
+    
+
+    transaction_direction = models.CharField(
+        max_length=50,
+        choices=TransactionType.choices
+    )
+
+    class ReferenceType(models.TextChoices):
+        CONTRACT = "contract", "Contract"
+        DISPUTE = "dispute", "Dispute"
+        WALLET_TOPUP = "wallet_topup", "Wallet_topup"
+
+    reference_type = models.CharField(
+        max_length=50,
+        choices=ReferenceType.choices,
+        null=True,
+        blank=True
+    )
+
+    reference_id = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
+    )
+
     balance_after = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -44,15 +75,24 @@ class Transaction(models.Model):
         unique=True
     )
 
-    operation_key = models.CharField(
-        max_length=250,
-        unique=True,
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
+
+class OperationLog(models.Model):
+    status = models.CharField(max_length=20, choices=[
+        ("STARTED", "STARTED"),
+        ("SUCCESS", "SUCCESS"),
+        ("FAILED", "FAILED"),
+    ], default="STARTED")
+
+    operation_key = models.CharField(max_length=250,unique=True)
+    contract = models.ForeignKey("contracts.Contract",on_delete=models.CASCADE)
+    actor = models.ForeignKey("users.CustomUser",on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 class PlatformSetting(models.Model):
     commission_percentage = models.DecimalField(max_digits=5,decimal_places=2,default=10.00)

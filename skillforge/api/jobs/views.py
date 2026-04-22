@@ -1,9 +1,6 @@
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, status, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter,OrderingFilter
 
 from api.jobs.filters import JobFilter
@@ -79,7 +76,8 @@ class JobViewSet(viewsets.ModelViewSet):
         )
 
         return Response({
-            "message" : "Job Updated"
+            "message" : "Job Updated",
+            'updated_job' : updated_job.id
         },status=status.HTTP_200_OK)
 
     def destroy(self,request,*args,**kwargs):
@@ -87,7 +85,9 @@ class JobViewSet(viewsets.ModelViewSet):
 
         cancelled_job = cancel_job(actor=request.user,job=job)
 
-        return Response(
-            {"message" : "Job Cancelled"},
+        return Response({
+            "message" : "Job Cancelled",
+            "job_id" : cancelled_job.id,
+        },
             status= status.HTTP_200_OK
         )

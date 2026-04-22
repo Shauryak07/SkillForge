@@ -1,6 +1,6 @@
 from contracts.permissions import is_client
 from contracts.models import Contract
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 
 def can_fund_contract(user, contract):
     if not is_client(user,contract):
@@ -22,7 +22,13 @@ def can_release_escrow(user, contract):
 
 """ Think and complete """
 def can_refund_escrow(contract):
-    if contract.status != Contract.Status.CANCELLED:
-        raise ValidationError(f"Cannot refund escrow in current state - {contract.status}")
+    if contract.status != Contract.Status.DISPUTED:
+        raise ValidationError(f"Cannot refund from the state {contract.status}")
+
+    return True
+
+def can_split_escrow(contract):
+    if contract.status != Contract.Status.DISPUTED:
+        raise ValidationError(f"Cannot split escrow in the state {contract.status}")
 
     return True

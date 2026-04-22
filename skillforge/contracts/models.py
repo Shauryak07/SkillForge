@@ -40,7 +40,8 @@ class Contract(models.Model):
         PAID = "PAID"
         REFUNDED = "REFUNDED"
         CANCELLED = "CANCELLED"
-        DISPUTED = "DISPUTED"      
+        DISPUTED = "DISPUTED"   
+        SPLIT_PAY = "SPLIT_PAY"   
 
     status = models.CharField(
         max_length = 20,
@@ -81,6 +82,7 @@ ALLOWED_TRANSITIONS = {
     Contract.Status.PAID : set(),
     Contract.Status.REFUNDED : set(),
     Contract.Status.CANCELLED: set(),
+    Contract.Status.SPLIT_PAY: set(),
     Contract.Status.DISPUTED: {Contract.Status.IN_PROGRESS,Contract.Status.REFUNDED,Contract.Status.PAID}
 } 
 # Audit Log
@@ -110,6 +112,7 @@ class ContractEvent(models.Model):
                                
         ESCROW_RELEASED = "escrow_released"
         ESCROW_REFUNDED = "escrow_refunded"
+        ESCROW_SPLIT = "escrow_split"
 
         DISPUTE_OPENED = "dispute_opened"
         DISPUTE_RESOLVED = "dispute_resolved"
@@ -136,52 +139,3 @@ class ContractEvent(models.Model):
 
     def __str__(self):
         return f"[{self.actor}] {self.event_type} - {self.contract_id}" # contract_id is just same default id created by django 
-
-
-
-class Dispute(models.Model):
-
-    class Status(models.TextChoices):
-        OPEN = "OPEN"
-        RESOLVED = "RESOLVED"
-        CLOSED = "CLOSED"
-
-    class Resolution(models.TextChoices):
-        CLIENT = "CLIENT"
-        FREELANCER = "FREELANCER"
-        SPLIT = "SPLIT"
-
-    contract = models.OneToOneField(
-        Contract,
-        on_delete=models.CASCADE,
-        related_name="disputes"
-    )
-
-    opened_by = models.ForeignKey(
-        CustomUser,
-        on_delete = models.PROTECT,
-        related_name="disputes"
-    )
-
-    reason = models.TextField()
-
-    status = models.CharField(
-        max_length=15,
-        choices=Status.choices,
-        default=Status.OPEN
-    )
-
-    resolution = models.CharField(
-        max_length=10,
-        choices=Resolution.choices,
-        null=True,
-        blank=True
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Dispute {self.id} raised by {self.opened_by} on {self.created_at}"
-
-    
-

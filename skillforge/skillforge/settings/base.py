@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'users',
     'dashboard',
     'submissions',
+    'disputes',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

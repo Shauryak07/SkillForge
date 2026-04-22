@@ -3,12 +3,14 @@ from submissions.models import Submission
 def validate_wallet(wallet):
     if wallet.balance < 0  or wallet.locked_balance < 0:
         raise ValueError(f"Invalid wallet transaction.")
-
-def ensure_no_active_disputes(contract):
-    active_dispute = contract.disputes.filter(status="open").count()
-
-    if active_dispute >= 1:
-        return False
+    
+def validate_locked_balance(locked_balance,deduction_amount):
+    if locked_balance < deduction_amount:
+        raise ValueError("Insufficient locked balance.")
+    
+def validate_wallet_balance(wallet_balance,deduction_amount):
+    if wallet_balance < deduction_amount:
+        raise ValueError("Insufficient wallet balance.")
 
 def validate_wallet_transaction_consistency(wallet):
     total = sum(
@@ -28,3 +30,4 @@ def get_latest_submission(contract):
         .order_by('-revision_number')
         .first()
     )
+

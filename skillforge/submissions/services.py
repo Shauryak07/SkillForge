@@ -3,7 +3,7 @@ from submissions.models import Submission
 from submissions.permissions import *
 from django.db import transaction
 from contracts.events import trigger_event
-from domain.invariants import ensure_no_active_disputes
+from disputes.helpers import ensure_no_active_disputes
 from django.utils import timezone
 
 @transaction.atomic
