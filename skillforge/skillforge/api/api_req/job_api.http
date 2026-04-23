@@ -1,0 +1,14 @@
+### JOBS
+
+GET http://localhost:8000/api/jobs/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc1NTQwMzI2LCJpYXQiOjE3NzU1NDAwMjYsImp0aSI6IjBhYjM1OGQyYzdjZTRjZjhhOTQxZGI0MjA2OTdjMWM5IiwidXNlcl9pZCI6IjIifQ.C6nTUnGT5VoSH-cinG7Iw6qVauxnheWZLy3aJScnt2Q
+
+
+GET http://localhost:8000/api/jobs/1/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc1NTQwMzI2LCJpYXQiOjE3NzU1NDAwMjYsImp0aSI6IjBhYjM1OGQyYzdjZTRjZjhhOTQxZGI0MjA2OTdjMWM5IiwidXNlcl9pZCI6IjIifQ.C6nTUnGT5VoSH-cinG7Iw6qVauxnheWZLy3aJScnt2Q
+
+GET http://localhost:8000/api/jobs/user_client/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc1NTQwMzI2LCJpYXQiOjE3NzU1NDAwMjYsImp0aSI6IjBhYjM1OGQyYzdjZTRjZjhhOTQxZGI0MjA2OTdjMWM5IiwidXNlcl9pZCI6IjIifQ.C6nTUnGT5VoSH-cinG7Iw6qVauxnheWZLy3aJScnt2Q

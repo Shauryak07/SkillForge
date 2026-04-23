@@ -114,6 +114,9 @@ class ContractEvent(models.Model):
         ESCROW_REFUNDED = "escrow_refunded"
         ESCROW_SPLIT = "escrow_split"
 
+        DISPUTE_REQUESTED = "dispute_requested"
+        DISPUTE_REQUEST_APPROVED = "dispute_request_approved"
+        DISPUTE_REQUEST_REJECTED = "dispute_request_rejected"
         DISPUTE_OPENED = "dispute_opened"
         DISPUTE_RESOLVED = "dispute_resolved"
         DISPUTE_CLOSED = "dispute_closed"

@@ -41,7 +41,7 @@ def fund_contract(contract_id, client_id):
             wallet=client_wallet,
             contract=contract,
             amount=contract.amount,
-            transaction_type=TransactionType.ESCROW_LOCK,
+            transaction_type= Transaction.TransactionType.ESCROW_FUNDED,
             balance_after=client_wallet.balance,
         )
 
@@ -57,7 +57,7 @@ def fund_contract(contract_id, client_id):
         
         return contract
     return execute_operation(operation_key,contract,client,logic)
-    
+
 
 def release_escrow(contract_id,client_id):
     operation_key = f"release_escrow:{contract_id}"
@@ -105,12 +105,19 @@ def release_escrow(contract_id,client_id):
         validate_wallet_transaction_consistency(client_wallet)
         validate_wallet_transaction_consistency(freelancer_wallet)
 
+        Transaction.objects.create(
+            wallet = client_wallet,
+            contract = contract,
+            amount = amount,
+            transaction_type= Transaction.TransactionType.ESCROW_RELEASED,
+            balance_after = client_wallet.locked_balance
+        )
     
         Transaction.objects.create(
             wallet=freelancer_wallet,
             contract=contract,
             amount=freelancer_amount,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type= Transaction.TransactionType.DEPOSIT,
             balance_after=freelancer_wallet.balance,
         )
 
@@ -118,7 +125,7 @@ def release_escrow(contract_id,client_id):
             wallet=platform_wallet,
             contract=contract,
             amount = fee,
-            transaction_type = TransactionType.PLATFORM_FEE,
+            transaction_type = Transaction.TransactionType.PLATFORM_FEE,
             balance_after = platform_wallet.balance,
         )
 
@@ -164,9 +171,23 @@ def refund_escrow(contract_id,actor_id):
 
         Transaction.objects.create(
             wallet=client_wallet,
+            contract = contract,
+            amount=amount,
+            transaction_type= Transaction.TransactionType.REFUND,
+            transaction_direction = Transaction.TransactionDirection.DEBIT,
+            reference_type = Transaction.ReferenceType.DISPUTE,
+            reference_id = contract.dispute_id,
+            balance_after = client_wallet.locked_balance
+        )
+
+        Transaction.objects.create(
+            wallet=client_wallet,
             contract=contract,
             amount=amount,
-            transaction_type = TransactionType.REFUND,
+            transaction_type = Transaction.TransactionType.REFUND,
+            transaction_direction = Transaction.TransactionDirection.CREDIT,
+            reference_type = Transaction.ReferenceType.DISPUTE,
+            reference_id = contract.dispute_id,
             balance_after=client_wallet.balance
         )
         
@@ -220,7 +241,16 @@ def split_escrow(contract_id,actor_id,client_split_percent,freelancer_split_perc
         """Write a similar function for split escrow"""
         # validate_wallet_transaction_consistency(client_wallet)
 
-        Transaction.objects.create()
+        Transaction.objects.create(
+            wallet=client_wallet,
+            contract = contract,
+            amount=contract.amount,
+            transaction_type= Transaction.TransactionType.REFUND,
+            transaction_direction = Transaction.TransactionDirection.DEBIT,
+            reference_type = Transaction.ReferenceType.DISPUTE,
+            reference_id = contract.dispute_id,
+            balance_after = client_wallet.locked_balance
+        )
 
         Transaction.objects.create(
             wallet=freelancer_wallet,

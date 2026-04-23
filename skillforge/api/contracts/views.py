@@ -11,6 +11,7 @@ from contracts.models import Contract
 from contracts.workflows import cancel_contract,activate_contract
 from payments.services import fund_contract, release_escrow
 from submissions.services import approve_work,submit_work,reject_work
+from disputes.services import request_dispute
 
 
 class ContractViewSet(
@@ -63,6 +64,9 @@ class ContractViewSet(
             "message" : "Contract Activated",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
+    
+
+    """ Payment """
 
     @action(detail=True,methods=['post'])
     def fund(self,request,pk=None):
@@ -74,9 +78,44 @@ class ContractViewSet(
             "message" : "Contract Funded",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
+
+    @action(detail=True,methods=['post'])
+    def release_escrow(self,request,pk=None):
+        contract = self.get_object()
+
+        release_escrow(contract,request.user)
+
+        return Response({
+            "message" : "Released Escrow",
+            "contract_id" : contract.id
+        },status=status.HTTP_200_OK)
     
     @action(detail=True,methods=['post'])
-    def approve_work(self,request,pk=None):
+    def release_escrow(self,request,pk=None):
+        contract = self.get_object()
+
+        release_escrow(contract,request.user)
+
+        return Response({
+            "message" : "Released Escrow",
+            "contract_id" : contract.id
+        },status=status.HTTP_200_OK)
+    
+    """ Submission """
+
+    @action(detail=True,methods=['post'])
+    def work_submit(self,request,pk=None):
+        contract = self.get_object()
+
+        submit_work(contract,request.user,message)
+
+        return Response({
+            "message" : "Released Escrow",
+            "contract_id" : contract.id
+        },status=status.HTTP_200_OK)
+    
+    @action(detail=True,methods=['post'])
+    def work_approve(self,request,pk=None):
         contract = self.get_object()
 
         approve_work(contract,request.user)
@@ -87,29 +126,7 @@ class ContractViewSet(
         },status=status.HTTP_200_OK)
 
     @action(detail=True,methods=['post'])
-    def submit_work(self,request,pk=None):
-        contract = self.get_object()
-
-        submit_work(contract,request.user,message)
-
-        return Response({
-            "message" : "Released Escrow",
-            "contract_id" : contract.id
-        },status=status.HTTP_200_OK)
-
-    @action(detail=True,methods=['post'])
-    def release_escrow(self,request,pk=None):
-        contract = self.get_object()
-
-        release_escrow(contract,request.user)
-
-        return Response({
-            "message" : "Released Escrow",
-            "contract_id" : contract.id
-        },status=status.HTTP_200_OK)
-
-    @action(detail=True,methods=['post'])
-    def reject_work(self,request,pk=None):
+    def work_reject(self,request,pk=None):
         contract = self.get_object()
 
         reject_work(contract,request.user,feedback)
@@ -118,15 +135,16 @@ class ContractViewSet(
             "message" : "Released Escrow",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
-
     
     @action(detail=True,methods=['post'])
-    def release_escrow(self,request,pk=None):
+    def dispute_request(self,request,pk=None):
         contract = self.get_object()
 
-        release_escrow(contract,request.user)
+        request = request_dispute(contract,request.user,reason)
 
         return Response({
-            "message" : "Released Escrow",
-            "contract_id" : contract.id
+            "message" : "Request submitted",
+            "request_id" : request.id
         },status=status.HTTP_200_OK)
+
+

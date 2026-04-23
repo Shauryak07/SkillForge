@@ -66,7 +66,7 @@ class Dispute(models.Model):
 
 
     created_at = models.DateTimeField(auto_now_add=True)
-    resolved_at = models.DateTimeField()
+    resolved_at = models.DateTimeField(null=True,blank=True)
 
     class Meta:
         indexes = [
@@ -107,3 +107,39 @@ class Dispute(models.Model):
             self.freelancer_amount = freelancer_amount
 
         self.save()
+
+class DisputeRequest(models.Model):
+    contract = models.ForeignKey(
+        "contracts.Contract",
+        on_delete=models.CASCADE,
+        related_name="dispute_request"
+    )
+
+    requester = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.PROTECT,
+        related_name="dispute_requests"
+    )
+
+    reason = models.TextField()
+
+    class DisputeRequestStatus(models.TextChoices):
+        PENDING = "PENDING"
+        APPROVED = "APPROVED"
+        REJECTED = "REJECTED"
+
+    status = models.CharField(
+        max_length=20,
+        choices=DisputeRequestStatus.choices,
+        default=DisputeRequestStatus.PENDING
+    )
+
+    reviewed_by = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True,blank=True)
