@@ -4,7 +4,7 @@ from disputes.models import DisputeRequest
 
 def can_request_dispute(contract,requester):
     if contract.dispute.exists():
-        raise ValidationError(f"Dispute")
+        raise ValidationError(f"Dispute already exists")
 
     if requester in [contract.freelancer,contract.client]:
         raise ValidationError(f"You are not permitted to open dispute for this contract")

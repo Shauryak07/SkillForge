@@ -14,7 +14,7 @@ class Dispute(models.Model):
         FREELANCER = "FREELANCER"
         SPLIT = "SPLIT"
 
-    contract = models.ForeignKey(
+    contract = models.OneToOneField(
         "contracts.Contract",
         on_delete=models.CASCADE,
         related_name="dispute"
@@ -109,10 +109,17 @@ class Dispute(models.Model):
         self.save()
 
 class DisputeRequest(models.Model):
-    contract = models.ForeignKey(
+    contract = models.OneToOneField(
         "contracts.Contract",
         on_delete=models.CASCADE,
         related_name="dispute_request"
+    )
+
+    dispute = models.OneToOneField(
+        "disputes.Dispute",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
 
     requester = models.ForeignKey(
@@ -123,15 +130,15 @@ class DisputeRequest(models.Model):
 
     reason = models.TextField()
 
-    class DisputeRequestStatus(models.TextChoices):
+    class Status(models.TextChoices):
         PENDING = "PENDING"
         APPROVED = "APPROVED"
         REJECTED = "REJECTED"
 
     status = models.CharField(
         max_length=20,
-        choices=DisputeRequestStatus.choices,
-        default=DisputeRequestStatus.PENDING
+        choices=Status.choices,
+        default=Status.PENDING
     )
 
     reviewed_by = models.ForeignKey(
@@ -143,3 +150,15 @@ class DisputeRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True,blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['contract','status'])
+        ]
+        constraints = [
+        models.UniqueConstraint(
+            fields=['contract'],
+            condition=Q(status='PENDING'),
+            name='one_pending_request_per_contract'
+        )
+    ]

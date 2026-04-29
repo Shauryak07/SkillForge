@@ -31,17 +31,21 @@ class Contract(models.Model):
         decimal_places=2
     )
 
+    dispute_requested = models.BooleanField(default=False)
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT"
-        FUNDED = "FUNDED"
         IN_PROGRESS = "IN_PROGRESS"
-        SUBMITTED = "SUBMITTED"
-        APPROVED = "APPROVED"
+        COMPLETED = "COMPLETED" # Work submitted and approved.
+        CANCELLED = "CANCELLED"
+    
+        FUNDED = "FUNDED"
         PAID = "PAID"
         REFUNDED = "REFUNDED"
-        CANCELLED = "CANCELLED"
-        DISPUTED = "DISPUTED"   
         SPLIT_PAY = "SPLIT_PAY"   
+
+        DISPUTE_REQUESTED = "DISPUTE_REQUESTED"
+        DISPUTED = "DISPUTED"   
 
     status = models.CharField(
         max_length = 20,
@@ -76,13 +80,15 @@ class Contract(models.Model):
 ALLOWED_TRANSITIONS = {
     Contract.Status.DRAFT: {Contract.Status.FUNDED, Contract.Status.CANCELLED},
     Contract.Status.FUNDED: {Contract.Status.IN_PROGRESS},
-    Contract.Status.IN_PROGRESS : {Contract.Status.SUBMITTED,Contract.Status.REFUNDED},
-    Contract.Status.SUBMITTED : {Contract.Status.APPROVED},
-    Contract.Status.APPROVED : {Contract.Status.PAID},
+    Contract.Status.IN_PROGRESS : {Contract.Status.COMPLETED,Contract.Status.REFUNDED},
+    Contract.Status.COMPLETED : {Contract.Status.PAID},
+
     Contract.Status.PAID : set(),
     Contract.Status.REFUNDED : set(),
     Contract.Status.CANCELLED: set(),
     Contract.Status.SPLIT_PAY: set(),
+
+    Contract.Status.DISPUTE_REQUESTED : {Contract.Status.DISPUTED,Contract.Status.IN_PROGRESS},
     Contract.Status.DISPUTED: {Contract.Status.IN_PROGRESS,Contract.Status.REFUNDED,Contract.Status.PAID}
 } 
 # Audit Log

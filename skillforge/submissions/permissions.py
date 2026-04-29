@@ -24,7 +24,7 @@ def can_approve_work(user, contract, submission):
     if not is_client(user, contract):
         raise ValidationError("Only contract client can approve work")
 
-    if contract.status != Contract.Status.SUBMITTED:
+    if contract.status != Contract.Status.IN_PROGRESS:
         raise ValidationError(f"Cannot approve work in state {contract.status}")
 
     if not submission:
@@ -39,7 +39,7 @@ def can_reject_work(user, contract, submission, feedback):
     if not is_client(user, contract):
         raise ValidationError("Only contract client can reject work")
 
-    if contract.status != Contract.Status.SUBMITTED:
+    if contract.status != Contract.Status.IN_PROGRESS:
         raise ValidationError(f"Cannot reject work in state {contract.status}")
 
     if not submission:

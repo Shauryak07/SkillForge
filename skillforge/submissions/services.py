@@ -28,9 +28,8 @@ def submit_work(contract, actor, message):
         revision_number=(last_submission.revision_number if last_submission else 0) + 1
     )
     contract.current_submission = submission
-    contract.transition_to(Contract.Status.SUBMITTED)
     operation_key = f"work_submitted_{contract.id}_{submission.id}"
-    contract.save(update_fields=["status","current_submission"])
+    contract.save(update_fields=["current_submission"])
 
     trigger_event(contract,actor,ContractEvent.ContractEventType.WORK_SUBMITTED,operation_key)
 
@@ -49,7 +48,7 @@ def approve_work(contract, actor):
     submission.reviewed_at = timezone.now()
     submission.save()
 
-    contract.transition_to(Contract.Status.CONTRACT_APPROVED)
+    contract.transition_to(Contract.Status.COMPLETED)
     operation_key = f"approve_work_{contract.id}"
 
     trigger_event(contract,actor,ContractEvent.ContractEventType.WORK_APPROVED,operation_key)
@@ -70,6 +69,5 @@ def reject_work(contract, actor,feedback):
     submission.reviewed_at = timezone.now()
     submission.save()
 
-    contract.transition_to(Contract.Status.IN_PROGRESS)
     operation_key = f"reject_work_{contract.id}_{submission.id}"
     trigger_event(contract,actor,ContractEvent.ContractEventType.WORK_REJECTED,operation_key)

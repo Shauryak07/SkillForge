@@ -150,7 +150,7 @@ def refund_escrow(contract_id,actor_id):
     actor = CustomUser.objects.get(id=actor_id)
 
     def logic():
-        can_refund_escrow(contract)
+        can_refund_escrow(actor,contract)
         """
         Think about it and change it when free
         """
