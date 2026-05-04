@@ -1,5 +1,6 @@
 from contracts.permissions import is_client
 from contracts.models import Contract,ContractEvent
+from submissions.models import Submission
 from rest_framework.exceptions import ValidationError
 
 def can_fund_contract(actor, contract):
@@ -12,12 +13,13 @@ def can_fund_contract(actor, contract):
     return True
 
 def can_release_escrow(actor, contract):
-    if not is_client(actor,contract) or actor.has_perm():
+    if not is_client(actor,contract) or actor.has_perm("is_staff"):
         raise ValidationError("Only contract client can release escrow")
 
-    if contract.status != Contract.Status.SUBMITTED:
+    if contract.status != Contract.Status.COMPLETED:
         raise ValidationError(f"Cannot release escrow in state - {contract.status}")
     
+
     if contract.events == ContractEvent.ContractEventType.DISPUTE_REQUESTED:
         raise ValidationError(f"Action blocked due to pending dispute request.")
 

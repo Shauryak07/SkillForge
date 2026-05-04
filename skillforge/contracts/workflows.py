@@ -15,7 +15,8 @@ def create_contract(job, client, freelancer, amount):
         freelancer=freelancer,
         amount=amount,
     )
-    trigger_event(contract,client,ContractEvent.ContractEventType.CONTRACT_CREATED)
+    operation_key = f"contract_created:{contract.id}"
+    trigger_event(contract,client,ContractEvent.ContractEventType.CONTRACT_CREATED,operation_key)
     return contract
 
 

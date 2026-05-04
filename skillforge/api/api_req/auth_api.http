@@ -4,8 +4,8 @@ POST http://localhost:8000/api/token/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "username" : "test_api2",
-    "password" : "testapi"
+    "username" : "admin",
+    "password" : "admin"
 }
 
 ###
@@ -13,8 +13,8 @@ POST http://localhost:8000/api/auth/login/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "username" : "test@gmail.com",
-    "password" : "test"
+    "username" : "freelancer",
+    "password" : "freelancer"
 }
 
 ###
@@ -22,18 +22,18 @@ POST http://localhost:8000/api/auth/register/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "username" : "test_api2",
-    "email" : "testapi2@gmail.com",
-    "password" : "testapi",
-    "password2" : "testapi"
+    "username" : "test",
+    "email" : "test@gmail.com",
+    "password" : "test",
+    "password2" : "test"
 }
 
 ###
 POST http://localhost:8000/api/auth/logout/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2NDI0MTA5LCJpYXQiOjE3NzY0MjM4MDksImp0aSI6IjhkZjM3OGM4MzIwZDRiZWE5YmRjYmZkYjk2NmRmYjkzIiwidXNlcl9pZCI6IjIifQ.vTvFd9uCGFNbznipEmxZe2GQbyg4p664TpMECYvjt9w
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc3ODc5MzQwLCJpYXQiOjE3Nzc4NzU3NDAsImp0aSI6ImI0NDE4ZTcyZDQ3ODQzMzA4ZjRjYzUxNjI2Y2JmYzFhIiwidXNlcl9pZCI6IjMifQ.crfCpcPo9N_V83hY1yrO27appYWm_9wx1K15wSSY4aw
 
 {
-    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NjUxMDIwOSwiaWF0IjoxNzc2NDIzODA5LCJqdGkiOiI2N2ZmODVkZjg2NTE0MDVjOGNlZmJiZDZlZTM4NTU2MCIsInVzZXJfaWQiOiIyIn0.tmj9B4gdZf-G0x9B7aUdmlfp_zeWuQKcVC_zlhOzVbg"
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3ODQ4MDU0MCwiaWF0IjoxNzc3ODc1NzQwLCJqdGkiOiJkMmQ1YTZlZTYzMzY0ZDA0OTI1YzBkOGQ4YWM0MGJhMSIsInVzZXJfaWQiOiIzIn0.eycTcPn6mOIq8YFXT1tmZcJPKyh6vTLCbdikjENMQdc"
 }
 

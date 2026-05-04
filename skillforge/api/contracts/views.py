@@ -106,11 +106,12 @@ class ContractViewSet(
     @action(detail=True,methods=['post'])
     def work_submit(self,request,pk=None):
         contract = self.get_object()
+        message = request.data.get("message")
 
         submit_work(contract,request.user,message)
 
         return Response({
-            "message" : "Released Escrow",
+            "message" : "Work Submitted",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
     
@@ -121,18 +122,19 @@ class ContractViewSet(
         approve_work(contract,request.user)
 
         return Response({
-            "message" : "Released Escrow",
+            "message" : "Work Approved",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
 
     @action(detail=True,methods=['post'])
     def work_reject(self,request,pk=None):
         contract = self.get_object()
+        feedback = request.data.get("feedback")
 
         reject_work(contract,request.user,feedback)
 
         return Response({
-            "message" : "Released Escrow",
+            "message" : "Work Rejected",
             "contract_id" : contract.id
         },status=status.HTTP_200_OK)
     
@@ -143,7 +145,7 @@ class ContractViewSet(
         request = request_dispute(contract,request.user,reason)
 
         return Response({
-            "message" : "Request submitted",
+            "message" : "Dispute Request submitted",
             "request_id" : request.id
         },status=status.HTTP_200_OK)
 

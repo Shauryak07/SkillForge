@@ -9,4 +9,4 @@ def trigger_event(contract, actor,event,operation_key):
         operation_key = operation_key
     )
 
-    run_handlers(contract, actor, event,contract_event)
+    # run_handlers(contract, actor, event,contract_event)

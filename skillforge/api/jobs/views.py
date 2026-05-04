@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.filters import SearchFilter,OrderingFilter
 
 from api.jobs.filters import JobFilter
@@ -28,9 +29,9 @@ class JobViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["partial_update","destroy"]:
-            return [JobAccessPermission,IsAuthenticated]
+            return [JobAccessPermission,IsAuthenticated()]
         else:
-            return [IsAuthenticated]
+            return [IsAuthenticated()]
 
     def list(self,request):
         queryset = self.get_queryset()

@@ -4,10 +4,10 @@ from django.utils import timezone
 from datetime import timedelta
 from contracts.models import Contract
 
+@transaction.atomic
 def execute_operation(operation_key, contract, actor, fn):
-    with transaction.atomic():
         try:
-            op = OperationLog.objects.create(
+            op,created = OperationLog.objects.get_or_create(
                 operation_key=operation_key,
                 status = "STARTED",
                 contract = contract,
@@ -25,7 +25,7 @@ def execute_operation(operation_key, contract, actor, fn):
                     raise Exception('Operation already in progress...')
 
         try:
-            result = fn()
+            result = fn(contract,actor)
             op.status = "SUCCESS"
             return result
 

@@ -63,6 +63,8 @@ class Contract(models.Model):
     )
     max_revisions = models.PositiveIntegerField(default=3)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def allowed_transition(self):
         return ALLOWED_TRANSITIONS.get(self.status, set())
 

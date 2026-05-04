@@ -3,13 +3,16 @@ from contracts.models import Contract
 from submissions.models import Submission
 from rest_framework.exceptions import ValidationError
 
-def can_submit_work(user,contract,last_submission):
+def can_submit_work(user,contract,last_submission,message):
 
     if not is_freelancer(user,contract):
         raise ValidationError("Only assigned freelancer can submit work.")
     
     if contract.status != Contract.Status.IN_PROGRESS:
         raise ValidationError(f"Cannot submit work in state {contract.status}")
+    
+    if not message:
+        raise ValidationError(f"Message field if required")
 
     if last_submission:
         if last_submission.status == Submission.SubmissionStatus.APPROVED:

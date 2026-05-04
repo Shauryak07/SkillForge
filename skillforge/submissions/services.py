@@ -9,6 +9,7 @@ from django.utils import timezone
 @transaction.atomic
 def submit_work(contract, actor, message):
     contract = Contract.objects.select_for_update().get(id=contract.id)
+    # print(contract)
     ensure_no_active_disputes(contract)
     
     last_submission = (
@@ -53,7 +54,7 @@ def approve_work(contract, actor):
 
     trigger_event(contract,actor,ContractEvent.ContractEventType.WORK_APPROVED,operation_key)
     from payments.services import release_escrow
-    release_escrow(contract,actor,operation_key)
+    release_escrow(contract,actor)
 
 @transaction.atomic
 def reject_work(contract, actor,feedback):

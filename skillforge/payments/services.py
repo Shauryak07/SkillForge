@@ -13,13 +13,16 @@ from decimal import Decimal
 from disputes.helpers import ensure_no_active_disputes
 
 
-def fund_contract(contract_id, client_id):
-    operation_key = f"fund_contract:{contract_id}"
+def fund_contract(contract, actor):
+    operation_key = f"fund_contract:{contract.id}"
 
-    contract = Contract.objects.select_for_update().get(id=contract_id)
-    client = CustomUser.objects.select_for_update().get(id=client_id)
+    # contract = Contract.objects.select_for_update().get(id=contract.id)
+    # client = CustomUser.objects.select_for_update().get(id=actor.id)
 
-    def logic():
+    @transaction.atomic
+    def logic(contract,actor):
+        contract = Contract.objects.select_for_update().get(id=contract.id)
+        client = CustomUser.objects.select_for_update().get(id=actor.id)
         can_fund_contract(client, contract)
         ensure_no_active_disputes(contract)
         
@@ -35,7 +38,7 @@ def fund_contract(contract_id, client_id):
         client_wallet.save(update_fields=["balance","locked_balance"])
 
         validate_wallet(client_wallet)
-        validate_wallet_transaction_consistency(client_wallet)
+        # validate_wallet_transaction_consistency(client_wallet)
 
         Transaction.objects.create(
             wallet=client_wallet,
@@ -48,7 +51,7 @@ def fund_contract(contract_id, client_id):
         contract.transition_to(Contract.Status.FUNDED)
 
         transaction.on_commit(
-            trigger_pay_event(
+            lambda: trigger_pay_event(
                 contract=contract,
                 actor=client,
                 event_type=ContractEvent.ContractEventType.CONTRACT_FUNDED
@@ -56,16 +59,18 @@ def fund_contract(contract_id, client_id):
         )
         
         return contract
-    return execute_operation(operation_key,contract,client,logic)
+    return execute_operation(operation_key,contract,actor,logic)
 
 
-def release_escrow(contract_id,client_id):
-    operation_key = f"release_escrow:{contract_id}"
+def release_escrow(contract,client):
+    operation_key = f"release_escrow:{contract.id}"
 
-    contract = Contract.objects.select_for_update().get(id=contract_id)
-    client = CustomUser.objects.select_for_update().get(id=client_id)
+    # contract = Contract.objects.select_for_update().get(id=contract.id)
+    # client = CustomUser.objects.select_for_update().get(id=client.id)
 
-    def logic():
+    def logic(contract,client):
+        contract = Contract.objects.select_for_update().get(id=contract.id)
+        client = CustomUser.objects.select_for_update().get(id=client.id)
         ensure_no_active_disputes(contract)
         can_release_escrow(client,contract)
 
@@ -76,8 +81,8 @@ def release_escrow(contract_id,client_id):
             Wallet.objects.filter(user__is_system=True)
         )
 
-        client_wallet = next((w for w in wallets if w.user_id == contract.client_id),None)
-        freelancer_wallet = next(w for w in wallets if w.user_id == contract.freelancer_id)
+        client_wallet = next((w for w in wallets if w.user_id == contract.client.id),None)
+        freelancer_wallet = next(w for w in wallets if w.user_id == contract.freelancer.id)
 
         platform_wallet = next(w for w in wallets if w.user.is_system)
 
@@ -102,8 +107,8 @@ def release_escrow(contract_id,client_id):
 
         validate_wallet(client_wallet)
         validate_wallet(freelancer_wallet)
-        validate_wallet_transaction_consistency(client_wallet)
-        validate_wallet_transaction_consistency(freelancer_wallet)
+        # validate_wallet_transaction_consistency(client_wallet)
+        # validate_wallet_transaction_consistency(freelancer_wallet)
 
         Transaction.objects.create(
             wallet = client_wallet,
@@ -132,7 +137,7 @@ def release_escrow(contract_id,client_id):
         contract.transition_to(Contract.Status.PAID)
 
         transaction.on_commit(
-            trigger_pay_event(
+            lambda: trigger_pay_event(
                 contract=contract,
                 actor=client,
                 event_type=ContractEvent.ContractEventType.ESCROW_RELEASED
@@ -143,13 +148,15 @@ def release_escrow(contract_id,client_id):
 
 
 """ Internal Function """
-def refund_escrow(contract_id,actor_id):
-    operation_key = f"refund_escrow:{contract_id}"
+def refund_escrow(contract,actor):
+    operation_key = f"refund_escrow:{contract.id}"
 
-    contract = Contract.objects.select_for_update().get(id=contract_id)
-    actor = CustomUser.objects.get(id=actor_id)
+    # contract = Contract.objects.select_for_update().get(id=contract.id)
+    # actor = CustomUser.objects.get(id=actor.id)
 
     def logic():
+        contract = Contract.objects.select_for_update().get(id=contract.id)
+        actor = CustomUser.objects.get(id=actor.id)
         can_refund_escrow(actor,contract)
         """
         Think about it and change it when free
@@ -167,7 +174,7 @@ def refund_escrow(contract_id,actor_id):
         client_wallet.save(update_fields=["locked_balance","balance"])
 
         validate_wallet(client_wallet)
-        validate_wallet_transaction_consistency(client_wallet)
+        # validate_wallet_transaction_consistency(client_wallet)
 
         Transaction.objects.create(
             wallet=client_wallet,
@@ -194,7 +201,7 @@ def refund_escrow(contract_id,actor_id):
         contract.transition_to(Contract.Status.REFUNDED)
 
         transaction.on_commit(
-            trigger_pay_event(
+            lambda: trigger_pay_event(
                 contract=contract,
                 actor=actor,
                 event_type=ContractEvent.ContractEventType.ESCROW_REFUNDED
@@ -206,9 +213,9 @@ def refund_escrow(contract_id,actor_id):
     return execute_operation(operation_key,contract,actor,logic)
 
 """Internal Function"""
-def split_escrow(contract_id,actor_id,client_split_percent,freelancer_split_percent):
-    contract = Contract.objects.select_for_update().get(id = contract_id)
-    actor = CustomUser.objects.get(id=actor_id)
+def split_escrow(contract,actor,client_split_percent,freelancer_split_percent):
+    contract = Contract.objects.select_for_update().get(id = contract.id)
+    actor = CustomUser.objects.get(id=actor.id)
     operation_key = f"split_escrow:{contract.id}"
 
     def logic():
@@ -219,8 +226,8 @@ def split_escrow(contract_id,actor_id,client_split_percent,freelancer_split_perc
             filter(user__in=[contract.client,contract.freelancer])
         )
 
-        client_wallet = next((w for w in wallets if w.user_id==contract.client_id),None)
-        freelancer_wallet = next((w for w in wallets if w.user_id==contract.freelancer_id),None)
+        client_wallet = next((w for w in wallets if w.user_id==contract.client.id),None)
+        freelancer_wallet = next((w for w in wallets if w.user_id==contract.freelancer.id),None)
         
         validate_locked_balance(client_wallet.locked_balance,contract.amount)
 

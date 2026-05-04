@@ -35,9 +35,6 @@ def accept_bid(bid, actor):
     )
 
     trigger_job_event(job,actor,JobEvent.EventType.BID_ACCEPTED)
-    from payments.services import fund_contract
-    fund_contract(contract,actor)
-
     return bid
 
 
